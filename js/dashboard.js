@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => {
                     content.classList.add('d-none');
                     content.classList.remove('animate__animated', 'animate__fadeOut');
-                }, 300);
+                }, 0);
             }
         });
 
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
         contentElement.classList.add('animate__animated', 'animate__fadeIn');
         setTimeout(() => {
             contentElement.classList.remove('animate__animated', 'animate__fadeIn');
-        }, 300);
+        }, 0);
         
         document.getElementById('current-page-title').textContent = title;
     }
