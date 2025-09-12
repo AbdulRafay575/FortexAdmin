@@ -34,9 +34,10 @@ function loadProducts() {
                 day: 'numeric'
             });
 
+            // UPDATED: Use Cloudinary URL directly (no localhost prefix needed)
             let imageCell = '<i class="fas fa-tshirt text-muted"></i>';
             if (product.image) {
-                imageCell = `<img src="http://localhost:5000${product.image}" alt="${product.name}" style="height: 50px;">`;
+                imageCell = `<img src="${product.image}" alt="${product.name}" style="height: 50px; object-fit: cover;">`;
             }
 
             row.innerHTML = `
@@ -133,8 +134,9 @@ function editProduct(productId) {
             colorCheckboxes.appendChild(div);
         });
 
+        // UPDATED: Use Cloudinary URL directly
         if (product.image) {
-            imagePreview.src = `http://localhost:5000${product.image}`;
+            imagePreview.src = product.image;
             imagePreview.classList.remove('d-none');
         } else {
             imagePreview.classList.add('d-none');
@@ -219,12 +221,14 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('description', document.getElementById('productDescription').value);
         formData.append('price', document.getElementById('productPrice').value);
 
-        document.querySelectorAll('.size-checkbox:checked').forEach(cb => {
-            formData.append('availableSizes', cb.value);
-        });
-        document.querySelectorAll('.color-checkbox:checked').forEach(cb => {
-            formData.append('availableColors', cb.value);
-        });
+        // UPDATED: Handle arrays properly for sizes and colors
+        const selectedSizes = Array.from(document.querySelectorAll('.size-checkbox:checked')).map(cb => cb.value);
+        const selectedColors = Array.from(document.querySelectorAll('.color-checkbox:checked')).map(cb => cb.value);
+        
+        // Append each size and color individually
+        selectedSizes.forEach(size => formData.append('availableSizes', size));
+        selectedColors.forEach(color => formData.append('availableColors', color));
+        
         if (productImage.files[0]) {
             formData.append('image', productImage.files[0]);
         }
@@ -241,16 +245,19 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(response => {
             if (response.ok) {
-                productModal.hide();
-                loadProducts();
-                alert('Product saved successfully');
+                return response.json();
             } else {
                 throw new Error('Failed to save product');
             }
         })
+        .then(data => {
+            productModal.hide();
+            loadProducts();
+            alert('Product saved successfully');
+        })
         .catch(error => {
             console.error('Error saving product:', error);
-            alert('Failed to save product');
+            alert('Failed to save product: ' + error.message);
         });
     });
 });
