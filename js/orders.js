@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load orders
     function loadOrders() {
-        fetch('http://localhost:5000/api/orders/admin/orders', {
+        fetch('https://fortexbackend.onrender.com/api/orders/admin/orders', {
             headers: {
                 'Authorization': `Bearer ${adminToken}`
             }
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // View order details (similar to dashboard.js version)
     window.viewOrderDetails = function(orderId)  {
-        fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        fetch(`https://fortexbackend.onrender.com/api/orders/${orderId}`, {
             headers: {
                 'Authorization': `Bearer ${adminToken}`
             }
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update order status (similar to dashboard.js version)
     function updateOrderStatus(orderId, status) {
-        fetch(`http://localhost:5000/api/orders/admin/orders/${orderId}`, {
+        fetch(`https://fortexbackend.onrender.com/api/orders/admin/orders/${orderId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            fetch('http://localhost:5000/api/admin/login', {
+            fetch('https://fortexbackend.onrender.com/api/admin/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

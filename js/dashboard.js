@@ -67,7 +67,7 @@ function loadRecentOrders() {
     const adminToken = localStorage.getItem('adminToken');
     const recentOrdersBody = document.getElementById('recent-orders-body');
     
-    fetch('http://localhost:5000/api/orders/admin/orders?limit=10&sort=-createdAt', {
+    fetch('https://fortexbackend.onrender.com/api/orders/admin/orders?limit=10&sort=-createdAt', {
         headers: {
             'Authorization': `Bearer ${adminToken}`
         }
@@ -159,7 +159,7 @@ function loadRecentOrders() {
     const adminToken = localStorage.getItem('adminToken');
     const recentOrdersBody = document.getElementById('recent-orders-body');
     
-    fetch('http://localhost:5000/api/orders/admin/orders?limit=10', {
+    fetch('https://fortexbackend.onrender.com/api/orders/admin/orders?limit=10', {
         headers: {
             'Authorization': `Bearer ${adminToken}`
         }
@@ -216,7 +216,7 @@ function loadRecentOrders() {
 
     // ========== DASHBOARD FUNCTIONS ==========
     function loadDashboardData() {
-        fetch('http://localhost:5000/api/orders/admin/orders', {
+        fetch('https://fortexbackend.onrender.com/api/orders/admin/orders', {
             headers: { 'Authorization': `Bearer ${adminToken}` }
         })
         .then(res => res.json())
@@ -269,7 +269,7 @@ function loadRecentOrders() {
         .catch(err => console.error('Error loading dashboard data:', err));
 
         // Fetch total products
-        fetch('http://localhost:5000/api/products', {
+        fetch('https://fortexbackend.onrender.com/api/products', {
             headers: { 'Authorization': `Bearer ${adminToken}` }
         })
         .then(res => res.json())
@@ -278,7 +278,7 @@ function loadRecentOrders() {
         });
 
         // Fetch total customers
-        fetch('http://localhost:5000/api/admin/customers', {
+        fetch('https://fortexbackend.onrender.com/api/admin/customers', {
             headers: { 'Authorization': `Bearer ${adminToken}` }
         })
         .then(res => res.json())
@@ -289,7 +289,7 @@ function loadRecentOrders() {
 
     // ========== ORDERS FUNCTIONS ==========
     function loadOrders(page = 1, searchTerm = '', statusFilter = '', dateFrom = '', dateTo = '') {
-        fetch('http://localhost:5000/api/orders/admin/orders', {
+        fetch('https://fortexbackend.onrender.com/api/orders/admin/orders', {
             headers: { 'Authorization': `Bearer ${adminToken}` }
         })
         .then(res => res.json())
@@ -626,7 +626,7 @@ function loadRecentOrders() {
 
     // View order details
     function viewOrderDetails(orderId) {
-        fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        fetch(`https://fortexbackend.onrender.com/api/orders/${orderId}`, {
             headers: { 'Authorization': `Bearer ${adminToken}` }
         })
         .then(response => response.json())
@@ -694,7 +694,7 @@ function loadRecentOrders() {
 
     // Update order status
     function updateOrderStatus(orderId, status) {
-        fetch(`http://localhost:5000/api/orders/admin/orders/${orderId}`, {
+        fetch(`https://fortexbackend.onrender.com/api/orders/admin/orders/${orderId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -728,7 +728,7 @@ function loadRecentOrders() {
     let allCustomers = [];
 
     function loadCustomers() {
-        fetch('http://localhost:5000/api/admin/customers', {
+        fetch('https://fortexbackend.onrender.com/api/admin/customers', {
             headers: { 'Authorization': `Bearer ${adminToken}` }
         })
         .then(response => response.json())
@@ -819,7 +819,7 @@ function loadRecentOrders() {
     }
 
     function viewCustomerDetails(customerId) {
-        fetch(`http://localhost:5000/api/admin/customers/${customerId}`, {
+        fetch(`https://fortexbackend.onrender.com/api/admin/customers/${customerId}`, {
             headers: { 'Authorization': `Bearer ${adminToken}` }
         })
         .then(response => response.json())

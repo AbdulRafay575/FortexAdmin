@@ -10,7 +10,7 @@ let imagePreview;
 
 // Load products (GLOBAL)
 function loadProducts() {
-    fetch('http://localhost:5000/api/products', {
+    fetch('https://fortexbackend.onrender.com/api/products', {
         headers: {
             'Authorization': `Bearer ${adminToken}`
         }
@@ -80,7 +80,7 @@ function loadProducts() {
 
 // Delete product (GLOBAL)
 function deleteProduct(productId) {
-    fetch(`http://localhost:5000/api/products/${productId}`, {
+    fetch(`https://fortexbackend.onrender.com/api/products/${productId}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${adminToken}`
@@ -102,7 +102,7 @@ function deleteProduct(productId) {
 
 // Edit product (LOCAL)
 function editProduct(productId) {
-    fetch(`http://localhost:5000/api/products/${productId}`, {
+    fetch(`https://fortexbackend.onrender.com/api/products/${productId}`, {
         headers: {
             'Authorization': `Bearer ${adminToken}`
         }
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append('image', productImage.files[0]);
         }
 
-        const url = productId ? `http://localhost:5000/api/products/${productId}` : 'http://localhost:5000/api/products';
+        const url = productId ? `https://fortexbackend.onrender.com/api/products/${productId}` : 'https://fortexbackend.onrender.com/api/products';
         const method = productId ? 'PUT' : 'POST';
 
         fetch(url, {

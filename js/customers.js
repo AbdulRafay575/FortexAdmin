@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load customers
     function loadCustomers() {
-        fetch('http://localhost:5000/api/admin/customers', {
+        fetch('https://fortexbackend.onrender.com/api/admin/customers', {
             headers: {
                 'Authorization': `Bearer ${adminToken}`
             }
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // View customer details
     function viewCustomerDetails(customerId) {
-        fetch(`http://localhost:5000/api/admin/customers/${customerId}`, {
+        fetch(`https://fortexbackend.onrender.com/api/admin/customers/${customerId}`, {
             headers: {
                 'Authorization': `Bearer ${adminToken}`
             }
