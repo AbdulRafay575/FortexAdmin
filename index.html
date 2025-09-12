@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | T-Shirt Customization</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="css/dashboard.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-white border-end" id="sidebar-wrapper">
+            <div class="sidebar-heading text-primary py-4 d-flex align-items-center justify-content-center">
+                <i class="fas fa-tshirt me-2 fs-4"></i>
+                <span class="fw-bold fs-5">T-Shirt Admin</span>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="#" class="list-group-item list-group-item-action dashboard-link">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+                <a href="#" class="list-group-item list-group-item-action products-link">
+                    <i class="fas fa-tshirt me-2"></i>Products
+                </a>
+                <a href="#" class="list-group-item list-group-item-action orders-link">
+                    <i class="fas fa-shopping-cart me-2"></i>Orders
+                </a>
+                <a href="#" class="list-group-item list-group-item-action customers-link">
+                    <i class="fas fa-users me-2"></i>Customers
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link text-dark" id="menu-toggle">
+                        <i class="fas fa-bars fa-lg"></i>
+                    </button>
+                    <h5 class="mb-0 ms-3 fw-bold" id="current-page-title">Dashboard</h5>
+                </div>
+                <div class="navbar-nav ms-auto">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <div class="me-2 d-flex flex-column align-items-end">
+                                <span class="fw-bold" id="admin-name">Admin</span>
+                                <small class="text-muted">Administrator</small>
+                            </div>
+                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" id="logout-btn"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container-fluid px-4 py-3">
+                <!-- Dashboard Content -->
+                <div id="dashboard-content">
+                    <div class="row g-3 mt-2">
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card border-start border-primary border-4 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col">
+                                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">
+                                                Total Orders (30 Days)</div>
+                                            <div class="h5 mb-0 fw-bold text-gray-800" id="total-orders">0</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card border-start border-success border-4 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col">
+                                            <div class="text-xs fw-bold text-success text-uppercase mb-1">
+                                                Total Sales (30 Days)</div>
+                                            <div class="h5 mb-0 fw-bold text-gray-800" id="total-sales">$0</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card border-start border-info border-4 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col">
+                                            <div class="text-xs fw-bold text-info text-uppercase mb-1">
+                                                Products</div>
+                                            <div class="h5 mb-0 fw-bold text-gray-800" id="total-products">0</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-tshirt fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card border-start border-warning border-4 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col">
+                                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">
+                                                Customers</div>
+                                            <div class="h5 mb-0 fw-bold text-gray-800" id="total-customers">0</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="m-0 fw-bold">Recent Orders</h6>
+                                    <!-- <a href="#" class="text-primary small">View All</a> -->
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover" id="recent-orders-table">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Order ID</th>
+                                                    <th>Customer</th>
+                                                    <th>Date</th>
+                                                    <th>Amount</th>
+                                                    <th>Status</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="recent-orders-body">
+                                                <!-- Filled by JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Content -->
+                <div id="products-content" class="d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="m-0 fw-bold">Product Management</h4>
+                        <button class="btn btn-primary" id="add-product-btn">
+                            <i class="fas fa-plus me-1"></i> Add Product
+                        </button>
+                    </div>
+                    
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="products-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Image</th>
+                                            <th>Name</th>
+                                            <th>Price</th>
+                                            <th>Sizes</th>
+                                            <th>Colors</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="products-body">
+                                        <!-- Filled by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Content -->
+                <!-- Orders Content -->
+<div id="orders-content" class="d-none">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="m-0 fw-bold">Order Management</h4>
+        <div>
+            <div class="input-group me-3" style="width: 250px;">
+                <input type="text" class="form-control" id="order-search" placeholder="Search by Order ID...">
+                <button class="btn btn-outline-secondary" type="button" id="search-order-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-calendar me-1"></i> From</span>
+                <input type="date" class="form-control" id="order-date-from">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-calendar me-1"></i> To</span>
+                <input type="date" class="form-control" id="order-date-to">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="btn-group w-100">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-filter me-1"></i> Status
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-status="">All Orders</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" data-status="Pending">Pending</a></li>
+                    <li><a class="dropdown-item" href="#" data-status="Processing">Processing</a></li>
+                    <li><a class="dropdown-item" href="#" data-status="Shipped">Shipped</a></li>
+                    <li><a class="dropdown-item" href="#" data-status="Delivered">Delivered</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm border-0 animate__animated animate__fadeIn">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="orders-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Amount</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-body">
+                        <!-- Filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small" id="orders-pagination-info">
+                    Showing 0 to 0 of 0 entries
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0" id="orders-pagination">
+                        <!-- Pagination will be added here -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+                <!-- Customers Content -->
+                <div id="customers-content" class="d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="m-0 fw-bold">Customer Management</h4>
+                        <div class="input-group" style="width: 300px;">
+                            <input type="text" class="form-control" placeholder="Search customers...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="customers-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Joined</th>
+                                            <th>Orders</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="customers-body">
+                                        <!-- Filled by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" id="productModalTitle">Add Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm" enctype="multipart/form-data">
+                        <input type="hidden" id="productId">
+                        <div class="mb-3">
+                            <label for="productName" class="form-label fw-bold">Product Name</label>
+                            <input type="text" class="form-control" id="productName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productDescription" class="form-label fw-bold">Description</label>
+                            <textarea class="form-control" id="productDescription" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productPrice" class="form-label fw-bold">Price</label>
+                            <input type="number" step="0.01" class="form-control" id="productPrice" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Available Sizes</label>
+                                <div class="form-check">
+                                    <input class="form-check-input size-checkbox" type="checkbox" value="Small" id="sizeSmall">
+                                    <label class="form-check-label" for="sizeSmall">Small</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input size-checkbox" type="checkbox" value="Medium" id="sizeMedium">
+                                    <label class="form-check-label" for="sizeMedium">Medium</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input size-checkbox" type="checkbox" value="Large" id="sizeLarge">
+                                    <label class="form-check-label" for="sizeLarge">Large</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input size-checkbox" type="checkbox" value="X-Large" id="sizeXLarge">
+                                    <label class="form-check-label" for="sizeXLarge">X-Large</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Available Colors</label>
+                                <div id="colorCheckboxes" class="mb-2">
+                                    <!-- Dynamic color checkboxes will be added here -->
+                                </div>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="newColor" placeholder="Add new color">
+                                    <button class="btn btn-outline-primary" type="button" id="addColorBtn">Add</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productImage" class="form-label fw-bold">Product Image</label>
+                            <input class="form-control" type="file" id="productImage" accept="image/*">
+                            <div class="mt-2 text-center" id="imagePreviewContainer">
+                                <img id="imagePreview" src="#" alt="Preview" class="img-thumbnail d-none" style="max-height: 200px;">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveProductBtn">Save Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Order Details - <span id="orderDetailId"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-3">Customer Information</h6>
+                                    <p id="customerInfo" class="mb-0"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-3">Shipping Information</h6>
+                                    <p id="shippingInfo" class="mb-0"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">Order Items</h6>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Size</th>
+                                            <th>Color</th>
+                                            <th>Custom Text</th>
+                                            <th>Qty</th>
+                                            <th>Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orderItemsBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-3">Payment Status</h6>
+                                    <p id="paymentStatus" class="fw-bold mb-0"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-3">Order Status</h6>
+                                    <select class="form-select" id="orderStatusSelect">
+                                        <option value="Pending">Pending</option>
+                                        <option value="Processing">Processing</option>
+                                        <option value="Shipped">Shipped</option>
+                                        <option value="Delivered">Delivered</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="updateOrderStatusBtn">Update Status</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Detail Modal -->
+   <div class="modal fade" id="customerDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Customer Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">Basic Information</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p><strong>Name:</strong> <span id="customerName"></span></p>
+                            </div>
+                            <div class="col-md-3">
+                                <p><strong>Email:</strong> <span id="customerEmail"></span></p>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <p><strong>Joined:</strong> <span id="customerJoined"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">Order History</h6>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle text-nowrap">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="min-width: 120px;">Order ID</th>
+                                        <th style="min-width: 100px;">Date</th>
+                                        <th style="min-width: 80px;">Items</th>
+                                        <th style="min-width: 100px;">Amount</th>
+                                        <th style="min-width: 100px;">Status</th>
+                                        <th style="min-width: 220px;">Shipping Address</th>
+                                        <th style="min-width: 120px;">Phone</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customerOrdersBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/products.js"></script>
+    <script src="js/orders.js"></script>
+    <script src="js/customers.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
