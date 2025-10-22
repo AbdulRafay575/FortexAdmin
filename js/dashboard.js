@@ -101,7 +101,7 @@ function loadRecentOrders() {
                 <td>${order.orderId}</td>
                 <td>${order.user.name}</td>
                 <td>${formattedDate}</td>
-                <td>$${order.totalAmount.toFixed(2)}</td>
+                <td>€${order.totalAmount.toFixed(2)}</td>
                 <td><span class="${statusBadgeClass}">${order.orderStatus}</span></td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary view-order-btn" data-order-id="${order._id}">
@@ -190,7 +190,7 @@ function loadRecentOrders() {
                 <td>${order.orderId}</td>
                 <td>${order.user.name}</td>
                 <td>${formattedDate}</td>
-                <td>$${order.totalAmount.toFixed(2)}</td>
+                <td>€${order.totalAmount.toFixed(2)}</td>
                 <td><span class="${statusBadgeClass}">${order.orderStatus}</span></td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary view-order-btn" data-order-id="${order._id}">
@@ -228,7 +228,7 @@ function loadRecentOrders() {
             const totalSales = recentOrders.reduce((sum, o) => sum + o.totalAmount, 0);
 
             document.getElementById('total-orders').textContent = recentOrders.length;
-            document.getElementById('total-sales').textContent = `$${totalSales.toFixed(2)}`;
+            document.getElementById('total-sales').textContent = `£${totalSales.toFixed(2)}`;
 
             const ordersBodyDashboard = document.getElementById('recent-orders-body');
             ordersBodyDashboard.innerHTML = '';
@@ -248,7 +248,7 @@ function loadRecentOrders() {
                     <td>${order.orderId}</td>
                     <td>${order.user.name}</td>
                     <td>${formattedDate}</td>
-                    <td>$${order.totalAmount.toFixed(2)}</td>
+                    <td>€${order.totalAmount.toFixed(2)}</td>
                     <td><span class="badge ${statusClass}">${order.orderStatus}</span></td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary view-order-btn" data-order-id="${order._id}">
@@ -667,7 +667,7 @@ function loadRecentOrders() {
                     <td>${item.color}</td>
                     <td>${item.customText || 'None'}</td>
                     <td>${item.quantity}</td>
-                    <td>$${item.priceAtPurchase.toFixed(2)}</td>
+                    <td>€${item.priceAtPurchase.toFixed(2)}</td>
                 `;
                 
                 orderItemsBody.appendChild(row);
@@ -863,7 +863,7 @@ function loadRecentOrders() {
                         <td>${order.orderId}</td>
                         <td>${formattedDate}</td>
                         <td>${totalItems} item(s)</td>
-                        <td>$${order.totalAmount.toFixed(2)}</td>
+                        <td>€${order.totalAmount.toFixed(2)}</td>
                         <td><span class="badge ${statusClass}">${order.orderStatus}</span></td>
                         <td>${shortAddress || 'N/A'}</td>
                         <td>${order.shippingDetails.phone || 'N/A'}</td>

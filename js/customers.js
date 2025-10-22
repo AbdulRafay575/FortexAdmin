@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${order.orderId}</td>
                         <td>${formattedDate}</td>
                         <td>${totalItems} item(s)</td>
-                        <td>$${order.totalAmount.toFixed(2)}</td>
+                        <td>€${order.totalAmount.toFixed(2)}</td>
                         <td>${order.orderStatus}</td>
                     `;
                     

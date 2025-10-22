@@ -10,7 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .then(response => response.json())
-        .then(orders => {
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to load orders');
+            }
+            
+            const orders = data.data;
             ordersBody.innerHTML = '';
             
             orders.forEach(order => {
@@ -29,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (order.orderStatus === 'Delivered') statusBadgeClass = 'badge-success';
                 else if (order.orderStatus === 'Shipped') statusBadgeClass = 'badge-info';
                 else if (order.orderStatus === 'Processing') statusBadgeClass = 'badge-warning';
+                else if (order.orderStatus === 'Cancelled') statusBadgeClass = 'badge-danger';
                 
                 // Payment badge
                 let paymentBadgeClass = 'badge-warning';
@@ -37,10 +43,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 row.innerHTML = `
                     <td>${order.orderId}</td>
-                    <td>${order.user.name}</td>
+                    <td>${order.user?.name || 'N/A'}</td>
                     <td>${formattedDate}</td>
                     <td>${order.items.length}</td>
-                    <td>$${order.totalAmount.toFixed(2)}</td>
+                    <td>€${order.totalAmount.toFixed(2)}</td>
                     <td><span class="badge ${paymentBadgeClass}">${order.paymentStatus}</span></td>
                     <td><span class="badge ${statusBadgeClass}">${order.orderStatus}</span></td>
                     <td>
@@ -61,25 +67,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
         })
-        .catch(error => console.error('Error loading orders:', error));
+        .catch(error => {
+            console.error('Error loading orders:', error);
+            ordersBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error loading orders: ${error.message}</td></tr>`;
+        });
     }
     
-    // View order details (similar to dashboard.js version)
-    window.viewOrderDetails = function(orderId)  {
+    // View order details with design images
+    window.viewOrderDetails = function(orderId) {
         fetch(`https://fortexbackend.onrender.com/api/orders/${orderId}`, {
             headers: {
                 'Authorization': `Bearer ${adminToken}`
             }
         })
         .then(response => response.json())
-        .then(order => {
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to load order details');
+            }
+            
+            const order = data.data;
+            
             // Populate modal
             document.getElementById('orderDetailId').textContent = order.orderId;
             
             // Customer info
             document.getElementById('customerInfo').innerHTML = `
                 <strong>Name:</strong> ${order.shippingDetails.name}<br>
-                <strong>Email:</strong> ${order.user.email}<br>
+                <strong>Email:</strong> ${order.user?.email || 'N/A'}<br>
                 <strong>Phone:</strong> ${order.shippingDetails.phone}
             `;
             
@@ -90,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 ${order.shippingDetails.country}
             `;
             
-            // Order items
+            // Order items with design images
             const orderItemsBody = document.getElementById('orderItemsBody');
             orderItemsBody.innerHTML = '';
             
@@ -102,13 +117,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     productName = item.product.name;
                 }
                 
+                // Check if item has custom design
+                const hasDesign = item.design && item.design !== '';
+                const designCell = hasDesign ? 
+                    `<img src="${item.design}" alt="Custom Design" class="design-thumbnail" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" data-bs-toggle="modal" data-bs-target="#designModal" onclick="showDesignImage('${item.design}')">` :
+                    '<span class="text-muted">No Design</span>';
+                
                 row.innerHTML = `
-                    <td>${productName}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            ${item.product?.images?.[0] ? 
+                                `<img src="${item.product.images[0].url}" alt="${productName}" class="product-thumbnail me-2">` : 
+                                '<i class="fas fa-tshirt text-muted me-2"></i>'
+                            }
+                            ${productName}
+                        </div>
+                    </td>
                     <td>${item.size}</td>
-                    <td>${item.color}</td>
+                    <td>
+                        <span class="color-badge" style="background-color: ${getColorHex(item.color)}"></span>
+                        ${item.color}
+                    </td>
+                    <td>${designCell}</td>
                     <td>${item.customText || 'None'}</td>
                     <td>${item.quantity}</td>
-                    <td>$${item.priceAtPurchase.toFixed(2)}</td>
+                    <td>€${item.priceAtPurchase.toFixed(2)}</td>
                 `;
                 
                 orderItemsBody.appendChild(row);
@@ -130,10 +163,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
             modal.show();
         })
-        .catch(error => console.error('Error loading order details:', error));
+        .catch(error => {
+            console.error('Error loading order details:', error);
+            alert('Error loading order details: ' + error.message);
+        });
     }
     
-    // Update order status (similar to dashboard.js version)
+    // Show design image in modal
+    window.showDesignImage = function(designUrl) {
+        document.getElementById('designImage').src = designUrl;
+        const modal = new bootstrap.Modal(document.getElementById('designModal'));
+        modal.show();
+    }
+    
+    // Update order status
     function updateOrderStatus(orderId, status) {
         fetch(`https://fortexbackend.onrender.com/api/orders/admin/orders/${orderId}`, {
             method: 'PUT',
@@ -145,20 +188,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 status: status
             })
         })
-        .then(response => {
-            if (response.ok) {
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
                 // Close modal and refresh data
                 const modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailModal'));
                 modal.hide();
                 loadOrders();
                 alert('Order status updated successfully');
             } else {
-                throw new Error('Failed to update order status');
+                throw new Error(data.message || 'Failed to update order status');
             }
         })
         .catch(error => {
             console.error('Error updating order status:', error);
-            alert('Failed to update order status');
+            alert('Failed to update order status: ' + error.message);
         });
     }
+    
+    // Initialize orders
+    loadOrders();
 });
+
+// Color HEX Helper
+function getColorHex(colorName) {
+    const colors = {
+        'Red': '#ff0000',
+        'Blue': '#0000ff',
+        'Green': '#008000',
+        'Black': '#000000',
+        'White': '#ffffff',
+        'Yellow': '#ffff00',
+        'Grey': '#808080',
+        'Pink': '#ffc0cb',
+        'Navy': '#000080',
+        'Purple': '#800080',
+        'Orange': '#ffa500',
+        'Brown': '#a52a2a'
+    };
+    return colors[colorName] || '#cccccc';
+}
