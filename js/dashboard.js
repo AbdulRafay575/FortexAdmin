@@ -4,13 +4,23 @@ let allOrders = [];
 let filteredOrders = [];
 
 document.addEventListener('DOMContentLoaded', function() {
+    const adminToken = localStorage.getItem('adminToken');
+    
+    // Check if user is admin
+    if (!adminToken) {
+        window.location.href = 'admin-login.html';
+        return;
+    }
+
     // Sidebar toggle
     const menuToggle = document.getElementById('menu-toggle');
     const wrapper = document.getElementById('wrapper');
 
-    menuToggle.addEventListener('click', function() {
-        wrapper.classList.toggle('toggled');
-    });
+    if (menuToggle && wrapper) {
+        menuToggle.addEventListener('click', function() {
+            wrapper.classList.toggle('toggled');
+        });
+    }
 
     // Navigation links
     const dashboardLink = document.querySelector('.dashboard-link');
@@ -24,159 +34,287 @@ document.addEventListener('DOMContentLoaded', function() {
     const customersContent = document.getElementById('customers-content');
 
     const ordersBody = document.getElementById('orders-body');
-    const adminToken = localStorage.getItem('adminToken');
 
     // Set active link and content
     function setActiveContent(contentElement, title) {
+        if (!contentElement) return;
         
         // Hide all content with fade out animation
-        if (!contentElement.classList.contains('d-none')) return;
         [dashboardContent, productsContent, ordersContent, customersContent].forEach(content => {
-            if (!content.classList.contains('d-none')) {
+            if (content && !content.classList.contains('d-none')) {
                 content.classList.add('animate__animated', 'animate__fadeOut');
                 setTimeout(() => {
                     content.classList.add('d-none');
                     content.classList.remove('animate__animated', 'animate__fadeOut');
-                }, 0);
+                }, 300);
             }
         });
 
         // Remove active class from all links
         [dashboardLink, productsLink, ordersLink, customersLink].forEach(link => {
-            link.classList.remove('active');
+            if (link) link.classList.remove('active');
         });
 
         // Show selected content with fade in animation
-        contentElement.classList.remove('d-none');
-        contentElement.classList.add('animate__animated', 'animate__fadeIn');
         setTimeout(() => {
-            contentElement.classList.remove('animate__animated', 'animate__fadeIn');
-        }, 0);
+            contentElement.classList.remove('d-none');
+            contentElement.classList.add('animate__animated', 'animate__fadeIn');
+            setTimeout(() => {
+                contentElement.classList.remove('animate__animated', 'animate__fadeIn');
+            }, 300);
+        }, 300);
         
-        document.getElementById('current-page-title').textContent = title;
+        const pageTitle = document.getElementById('current-page-title');
+        if (pageTitle) pageTitle.textContent = title;
     }
 
     // Dashboard link click
-    dashboardLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveContent(dashboardContent, 'Dashboard');
-        dashboardLink.classList.add('active');
-        loadDashboardData();
-        loadRecentOrders();
-function loadRecentOrders() {
-    const adminToken = localStorage.getItem('adminToken');
-    const recentOrdersBody = document.getElementById('recent-orders-body');
-    
-    fetch('https://fortexbackend.onrender.com/api/orders/admin/orders?limit=10&sort=-createdAt', {
-        headers: {
-            'Authorization': `Bearer ${adminToken}`
-        }
-    })
-    .then(response => response.json())
-    .then(orders => {
-        recentOrdersBody.innerHTML = '';
-        
-        // Make sure we only show exactly 10 orders
-        const recentOrders = orders.slice(0, 10);
-        
-        recentOrders.forEach(order => {
-            const row = document.createElement('tr');
-            
-            // Format date
-            const orderDate = new Date(order.createdAt);
-            const formattedDate = orderDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-            
-            // Status badge
-            let statusBadgeClass = 'badge bg-primary';
-            if (order.orderStatus === 'Delivered') statusBadgeClass = 'badge bg-success';
-            else if (order.orderStatus === 'Shipped') statusBadgeClass = 'badge bg-info';
-            else if (order.orderStatus === 'Processing') statusBadgeClass = 'badge bg-warning';
-            else if (order.orderStatus === 'Pending') statusBadgeClass = 'badge bg-secondary';
-            
-            row.innerHTML = `
-                <td>${order.orderId}</td>
-                <td>${order.user.name}</td>
-                <td>${formattedDate}</td>
-                <td>€${order.totalAmount.toFixed(2)}</td>
-                <td><span class="${statusBadgeClass}">${order.orderStatus}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary view-order-btn" data-order-id="${order._id}">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-            `;
-            
-            recentOrdersBody.appendChild(row);
+    if (dashboardLink) {
+        dashboardLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            setActiveContent(dashboardContent, 'Dashboard');
+            dashboardLink.classList.add('active');
+            loadDashboardData();
         });
-        
-        // Add event listeners to view buttons
-        document.querySelectorAll('.view-order-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const orderId = this.getAttribute('data-order-id');
-                viewOrderDetails(orderId);
-            });
-        });
-    })
-    .catch(error => console.error('Error loading recent orders:', error));
-}
-
-    });
+    }
 
     // Products link click
-    productsLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveContent(productsContent, 'Products');
-        productsLink.classList.add('active');
-        if(typeof loadProducts === 'function') loadProducts();
-    });
+    if (productsLink) {
+        productsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            setActiveContent(productsContent, 'Products');
+            productsLink.classList.add('active');
+            if (typeof loadProducts === 'function') loadProducts();
+        });
+    }
 
     // Orders link click
-    ordersLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveContent(ordersContent, 'Orders');
-        ordersLink.classList.add('active');
-        loadOrders();
-            initOrderFilters(); // Add this line
-    });
+    if (ordersLink) {
+        ordersLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            setActiveContent(ordersContent, 'Orders');
+            ordersLink.classList.add('active');
+            loadOrders();
+            initOrderFilters();
+        });
+    }
 
     // Customers link click
-    customersLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveContent(customersContent, 'Customers');
-        customersLink.classList.add('active');
-        loadCustomers();
-    });
+    if (customersLink) {
+        customersLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            setActiveContent(customersContent, 'Customers');
+            customersLink.classList.add('active');
+            loadCustomers();
+        });
+    }
 
     // Default to dashboard on load
-    dashboardLink.classList.add('active');
+    if (dashboardLink) dashboardLink.classList.add('active');
     loadDashboardData();
 
-function loadRecentOrders() {
-    const adminToken = localStorage.getItem('adminToken');
-    const recentOrdersBody = document.getElementById('recent-orders-body');
-    
-    fetch('https://fortexbackend.onrender.com/api/orders/admin/orders?limit=10', {
-        headers: {
-            'Authorization': `Bearer ${adminToken}`
+    // ========== DASHBOARD FUNCTIONS ==========
+    function loadDashboardData() {
+        console.log('Loading dashboard data...');
+        
+        // Load statistics
+        loadStatistics();
+        
+        // Load recent orders
+        loadRecentOrders();
+    }
+
+    function loadStatistics() {
+        console.log('Loading statistics...');
+        
+        // Load orders for statistics
+        fetch('https://fortexbackend.onrender.com/api/orders/admin/orders', {
+            headers: { 
+                'Authorization': `Bearer ${adminToken}` 
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Statistics orders response:', data);
+            
+            let orders = [];
+            if (data.success && Array.isArray(data.data)) {
+                orders = data.data;
+            } else if (Array.isArray(data)) {
+                orders = data;
+            } else {
+                throw new Error('Invalid orders data format');
+            }
+            
+            calculateStatistics(orders);
+        })
+        .catch(error => {
+            console.error('Error loading statistics:', error);
+            // Set default values on error
+            updateStatistics(0, 0, 0, 0);
+        });
+
+        // Load products count
+        fetch('https://fortexbackend.onrender.com/api/products', {
+            headers: { 
+                'Authorization': `Bearer ${adminToken}` 
+            }
+        })
+        .then(response => response.json())
+        .then(products => {
+            const totalProducts = document.getElementById('total-products');
+            if (totalProducts) {
+                totalProducts.textContent = Array.isArray(products) ? products.length : 
+                                          (products.success && Array.isArray(products.data)) ? products.data.length : 0;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading products count:', error);
+            const totalProducts = document.getElementById('total-products');
+            if (totalProducts) totalProducts.textContent = '0';
+        });
+
+        // Load customers count
+        fetch('https://fortexbackend.onrender.com/api/admin/customers', {
+            headers: { 
+                'Authorization': `Bearer ${adminToken}` 
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const totalCustomers = document.getElementById('total-customers');
+            if (totalCustomers) {
+                const customers = Array.isArray(data) ? data : 
+                                (data.success && Array.isArray(data.data)) ? data.data : [];
+                totalCustomers.textContent = customers.length;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading customers count:', error);
+            const totalCustomers = document.getElementById('total-customers');
+            if (totalCustomers) totalCustomers.textContent = '0';
+        });
+    }
+
+    function calculateStatistics(orders) {
+        console.log('Calculating statistics from', orders.length, 'orders');
+        
+        // Total orders
+        const totalOrders = orders.length;
+        
+        // Total revenue (only paid orders)
+        const totalRevenue = orders
+            .filter(order => order.paymentStatus === 'Paid')
+            .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        
+        // Pending orders
+        const pendingOrders = orders.filter(order => 
+            order.orderStatus === 'Pending' || order.orderStatus === 'Processing'
+        ).length;
+        
+        // This month's revenue
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        const monthlyRevenue = orders
+            .filter(order => {
+                if (order.paymentStatus !== 'Paid') return false;
+                const orderDate = new Date(order.createdAt);
+                return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
+            })
+            .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        
+        updateStatistics(totalOrders, totalRevenue, pendingOrders, monthlyRevenue);
+    }
+
+    function updateStatistics(totalOrders, totalRevenue, pendingOrders, monthlyRevenue) {
+        console.log('Updating statistics:', { totalOrders, totalRevenue, pendingOrders, monthlyRevenue });
+        
+        // Update total orders
+        const totalOrdersElement = document.getElementById('total-orders');
+        if (totalOrdersElement) totalOrdersElement.textContent = totalOrders;
+        
+        // Update total revenue
+        const totalRevenueElement = document.getElementById('total-revenue');
+        if (totalRevenueElement) totalRevenueElement.textContent = `€${totalRevenue.toFixed(2)}`;
+        
+        // Update pending orders
+        const pendingOrdersElement = document.getElementById('pending-orders');
+        if (pendingOrdersElement) pendingOrdersElement.textContent = pendingOrders;
+        
+        // Update monthly revenue
+        const monthlyRevenueElement = document.getElementById('monthly-revenue');
+        if (monthlyRevenueElement) monthlyRevenueElement.textContent = `€${monthlyRevenue.toFixed(2)}`;
+    }
+
+    function loadRecentOrders() {
+        console.log('Loading recent orders...');
+        const recentOrdersBody = document.getElementById('recent-orders-body');
+        
+        if (!recentOrdersBody) {
+            console.error('Recent orders body not found');
+            return;
         }
-    })
-    .then(response => response.json())
-    .then(orders => {
+        
+        fetch('https://fortexbackend.onrender.com/api/orders/admin/orders', {
+            headers: {
+                'Authorization': `Bearer ${adminToken}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Recent orders response:', data);
+            
+            let orders = [];
+            if (data.success && Array.isArray(data.data)) {
+                orders = data.data;
+            } else if (Array.isArray(data)) {
+                orders = data;
+            } else {
+                throw new Error('Invalid orders data format');
+            }
+            
+            // Sort by date (newest first) and take first 5
+            const recentOrders = orders
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 5);
+            
+            displayRecentOrders(recentOrders);
+        })
+        .catch(error => {
+            console.error('Error loading recent orders:', error);
+            recentOrdersBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error loading orders</td></tr>`;
+        });
+    }
+
+    function displayRecentOrders(orders) {
+        const recentOrdersBody = document.getElementById('recent-orders-body');
+        if (!recentOrdersBody) return;
+        
         recentOrdersBody.innerHTML = '';
+        
+        if (orders.length === 0) {
+            recentOrdersBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No recent orders</td></tr>`;
+            return;
+        }
         
         orders.forEach(order => {
             const row = document.createElement('tr');
             
-            // Format date
             const orderDate = new Date(order.createdAt);
             const formattedDate = orderDate.toLocaleDateString('en-US', {
-                year: 'numeric',
                 month: 'short',
-                day: 'numeric'
+                day: 'numeric',
+                year: 'numeric'
             });
             
             // Status badge
@@ -188,10 +326,10 @@ function loadRecentOrders() {
             
             row.innerHTML = `
                 <td>${order.orderId}</td>
-                <td>${order.user.name}</td>
+                <td>${order.user?.name || 'N/A'}</td>
                 <td>${formattedDate}</td>
-                <td>€${order.totalAmount.toFixed(2)}</td>
-                <td><span class="${statusBadgeClass}">${order.orderStatus}</span></td>
+                <td>€${order.totalAmount?.toFixed(2) || '0.00'}</td>
+                <td><span class="badge ${statusBadgeClass}">${order.orderStatus || 'Pending'}</span></td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary view-order-btn" data-order-id="${order._id}">
                         <i class="fas fa-eye"></i>
@@ -208,96 +346,43 @@ function loadRecentOrders() {
                 const orderId = this.getAttribute('data-order-id');
                 viewOrderDetails(orderId);
             });
-        });
-    })
-    .catch(error => console.error('Error loading recent orders:', error));
-}
-        loadRecentOrders();
-
-    // ========== DASHBOARD FUNCTIONS ==========
-    function loadDashboardData() {
-        fetch('https://fortexbackend.onrender.com/api/orders/admin/orders', {
-            headers: { 'Authorization': `Bearer ${adminToken}` }
-        })
-        .then(res => res.json())
-        .then(orders => {
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-            const recentOrders = orders.filter(o => new Date(o.createdAt) > thirtyDaysAgo);
-            const totalSales = recentOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-
-            document.getElementById('total-orders').textContent = recentOrders.length;
-            document.getElementById('total-sales').textContent = `£${totalSales.toFixed(2)}`;
-
-            const ordersBodyDashboard = document.getElementById('recent-orders-body');
-            ordersBodyDashboard.innerHTML = '';
-
-            recentOrders.slice(0, 5).forEach(order => {
-                const orderDate = new Date(order.createdAt);
-                const formattedDate = orderDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-
-                let statusClass = 'badge-primary';
-                if (order.orderStatus === 'Delivered') statusClass = 'badge-success';
-                else if (order.orderStatus === 'Shipped') statusClass = 'badge-info';
-                else if (order.orderStatus === 'Processing') statusClass = 'badge-warning';
-
-                const row = document.createElement('tr');
-                row.className = 'animate__animated animate__fadeIn';
-                row.innerHTML = `
-                    <td>${order.orderId}</td>
-                    <td>${order.user.name}</td>
-                    <td>${formattedDate}</td>
-                    <td>€${order.totalAmount.toFixed(2)}</td>
-                    <td><span class="badge ${statusClass}">${order.orderStatus}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary view-order-btn" data-order-id="${order._id}">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
-                `;
-                ordersBodyDashboard.appendChild(row);
-            });
-
-            // Add click listeners on view buttons
-            document.querySelectorAll('.view-order-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    viewOrderDetails(this.getAttribute('data-order-id'));
-                });
-            });
-        })
-        .catch(err => console.error('Error loading dashboard data:', err));
-
-        // Fetch total products
-        fetch('https://fortexbackend.onrender.com/api/products', {
-            headers: { 'Authorization': `Bearer ${adminToken}` }
-        })
-        .then(res => res.json())
-        .then(products => {
-            document.getElementById('total-products').textContent = products.length;
-        });
-
-        // Fetch total customers
-        fetch('https://fortexbackend.onrender.com/api/admin/customers', {
-            headers: { 'Authorization': `Bearer ${adminToken}` }
-        })
-        .then(res => res.json())
-        .then(customers => {
-            document.getElementById('total-customers').textContent = customers.length;
         });
     }
 
     // ========== ORDERS FUNCTIONS ==========
     function loadOrders(page = 1, searchTerm = '', statusFilter = '', dateFrom = '', dateTo = '') {
+        console.log('Loading orders...');
+        
         fetch('https://fortexbackend.onrender.com/api/orders/admin/orders', {
-            headers: { 'Authorization': `Bearer ${adminToken}` }
+            headers: { 
+                'Authorization': `Bearer ${adminToken}` 
+            }
         })
-        .then(res => res.json())
-        .then(orders => {
-            allOrders = orders;
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Orders response:', data);
+            
+            if (data.success && Array.isArray(data.data)) {
+                allOrders = data.data;
+            } else if (Array.isArray(data)) {
+                allOrders = data;
+            } else {
+                throw new Error('Invalid orders data format');
+            }
+            
             applyOrderFilters(searchTerm, statusFilter, dateFrom, dateTo, page);
         })
-        .catch(err => console.error('Error loading orders:', err));
+        .catch(error => {
+            console.error('Error loading orders:', error);
+            if (ordersBody) {
+                ordersBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error loading orders: ${error.message}</td></tr>`;
+            }
+        });
     }
 
     function applyOrderFilters(searchTerm = '', statusFilter = '', dateFrom = '', dateTo = '', page = 1) {
@@ -305,8 +390,12 @@ function loadRecentOrders() {
         
         // Filter orders
         filteredOrders = allOrders.filter(order => {
-            // Search by order ID
-            const matchesSearch = searchTerm ? order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) : true;
+            // Search by order ID or customer name
+            const matchesSearch = searchTerm ? 
+                order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (order.user?.name && order.user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (order.user?.email && order.user.email.toLowerCase().includes(searchTerm.toLowerCase())) : 
+                true;
             
             // Filter by status
             const matchesStatus = statusFilter ? order.orderStatus === statusFilter : true;
@@ -334,6 +423,8 @@ function loadRecentOrders() {
     }
 
     function renderOrders(orders) {
+        if (!ordersBody) return;
+        
         ordersBody.innerHTML = '';
 
         if (orders.length === 0) {
@@ -353,19 +444,18 @@ function loadRecentOrders() {
             const formattedDate = orderDate.toLocaleDateString('en-US', { 
                 year: 'numeric', 
                 month: 'short', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                day: 'numeric'
             });
 
-            let statusBadgeClass = 'badge-primary';
-            if (order.orderStatus === 'Delivered') statusBadgeClass = 'badge-success';
-            else if (order.orderStatus === 'Shipped') statusBadgeClass = 'badge-info';
-            else if (order.orderStatus === 'Processing') statusBadgeClass = 'badge-warning';
+            let statusBadgeClass = 'badge bg-primary';
+            if (order.orderStatus === 'Delivered') statusBadgeClass = 'badge bg-success';
+            else if (order.orderStatus === 'Shipped') statusBadgeClass = 'badge bg-info';
+            else if (order.orderStatus === 'Processing') statusBadgeClass = 'badge bg-warning';
+            else if (order.orderStatus === 'Cancelled') statusBadgeClass = 'badge bg-danger';
 
-            let paymentBadgeClass = 'badge-warning';
-            if (order.paymentStatus === 'Paid') paymentBadgeClass = 'badge-success';
-            else if (order.paymentStatus === 'Failed') paymentBadgeClass = 'badge-danger';
+            let paymentBadgeClass = 'badge bg-warning';
+            if (order.paymentStatus === 'Paid') paymentBadgeClass = 'badge bg-success';
+            else if (order.paymentStatus === 'Failed') paymentBadgeClass = 'badge bg-danger';
 
             const row = document.createElement('tr');
             row.className = 'animate__animated animate__fadeIn';
@@ -373,21 +463,21 @@ function loadRecentOrders() {
                 <td>
                     <span class="fw-bold">${order.orderId}</span>
                 </td>
-                <td>${order.user.name}</td>
+                <td>${order.user?.name || 'N/A'}</td>
                 <td>
                     <small class="text-muted">${formattedDate}</small>
                 </td>
-                <td>${order.items.length}</td>
-                <td class="fw-bold">$${order.totalAmount.toFixed(2)}</td>
+                <td>${order.items?.length || 0}</td>
+                <td class="fw-bold">€${order.totalAmount?.toFixed(2) || '0.00'}</td>
                 <td>
                     <span class="badge ${paymentBadgeClass}">
                         <i class="fas ${order.paymentStatus === 'Paid' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-1"></i>
-                        ${order.paymentStatus}
+                        ${order.paymentStatus || 'Pending'}
                     </span>
                 </td>
                 <td>
                     <span class="badge ${statusBadgeClass}">
-                        ${order.orderStatus}
+                        ${order.orderStatus || 'Pending'}
                     </span>
                 </td>
                 <td>
@@ -402,20 +492,25 @@ function loadRecentOrders() {
         // Update pagination info
         const startCount = ((currentOrdersPage - 1) * ordersPerPage) + 1;
         const endCount = Math.min(currentOrdersPage * ordersPerPage, filteredOrders.length);
-        document.getElementById('orders-pagination-info').textContent = 
-            `Showing ${startCount} to ${endCount} of ${filteredOrders.length} entries`;
+        const paginationInfo = document.getElementById('orders-pagination-info');
+        if (paginationInfo) {
+            paginationInfo.textContent = `Showing ${startCount} to ${endCount} of ${filteredOrders.length} entries`;
+        }
 
         // Add click listeners to view buttons
         document.querySelectorAll('.view-order-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                viewOrderDetails(this.getAttribute('data-order-id'));
+                const orderId = this.getAttribute('data-order-id');
+                viewOrderDetails(orderId);
             });
         });
     }
 
     function renderOrdersPagination() {
-        const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
         const paginationEl = document.getElementById('orders-pagination');
+        if (!paginationEl) return;
+        
+        const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
         paginationEl.innerHTML = '';
 
         if (totalPages <= 1) return;
@@ -432,10 +527,10 @@ function loadRecentOrders() {
             e.preventDefault();
             if (currentOrdersPage > 1) {
                 applyOrderFilters(
-                    document.getElementById('order-search').value,
-                    document.querySelector('.dropdown-menu .active')?.dataset.status || '',
-                    document.getElementById('order-date-from').value,
-                    document.getElementById('order-date-to').value,
+                    getSearchTerm(),
+                    getStatusFilter(),
+                    getDateFrom(),
+                    getDateTo(),
                     currentOrdersPage - 1
                 );
             }
@@ -458,10 +553,10 @@ function loadRecentOrders() {
             firstLi.addEventListener('click', (e) => {
                 e.preventDefault();
                 applyOrderFilters(
-                    document.getElementById('order-search').value,
-                    document.querySelector('.dropdown-menu .active')?.dataset.status || '',
-                    document.getElementById('order-date-from').value,
-                    document.getElementById('order-date-to').value,
+                    getSearchTerm(),
+                    getStatusFilter(),
+                    getDateFrom(),
+                    getDateTo(),
                     1
                 );
             });
@@ -482,10 +577,10 @@ function loadRecentOrders() {
             pageLi.addEventListener('click', (e) => {
                 e.preventDefault();
                 applyOrderFilters(
-                    document.getElementById('order-search').value,
-                    document.querySelector('.dropdown-menu .active')?.dataset.status || '',
-                    document.getElementById('order-date-from').value,
-                    document.getElementById('order-date-to').value,
+                    getSearchTerm(),
+                    getStatusFilter(),
+                    getDateFrom(),
+                    getDateTo(),
                     i
                 );
             });
@@ -506,10 +601,10 @@ function loadRecentOrders() {
             lastLi.addEventListener('click', (e) => {
                 e.preventDefault();
                 applyOrderFilters(
-                    document.getElementById('order-search').value,
-                    document.querySelector('.dropdown-menu .active')?.dataset.status || '',
-                    document.getElementById('order-date-from').value,
-                    document.getElementById('order-date-to').value,
+                    getSearchTerm(),
+                    getStatusFilter(),
+                    getDateFrom(),
+                    getDateTo(),
                     totalPages
                 );
             });
@@ -528,10 +623,10 @@ function loadRecentOrders() {
             e.preventDefault();
             if (currentOrdersPage < totalPages) {
                 applyOrderFilters(
-                    document.getElementById('order-search').value,
-                    document.querySelector('.dropdown-menu .active')?.dataset.status || '',
-                    document.getElementById('order-date-from').value,
-                    document.getElementById('order-date-to').value,
+                    getSearchTerm(),
+                    getStatusFilter(),
+                    getDateFrom(),
+                    getDateTo(),
                     currentOrdersPage + 1
                 );
             }
@@ -539,61 +634,94 @@ function loadRecentOrders() {
         paginationEl.appendChild(nextLi);
     }
 
+    // Helper functions for filter values
+    function getSearchTerm() {
+        const searchInput = document.getElementById('order-search');
+        return searchInput ? searchInput.value : '';
+    }
+
+    function getStatusFilter() {
+        const activeItem = document.querySelector('#orders-content .dropdown-menu .active');
+        return activeItem ? activeItem.dataset.status : '';
+    }
+
+    function getDateFrom() {
+        const dateFrom = document.getElementById('order-date-from');
+        return dateFrom ? dateFrom.value : '';
+    }
+
+    function getDateTo() {
+        const dateTo = document.getElementById('order-date-to');
+        return dateTo ? dateTo.value : '';
+    }
+
     function initOrderFilters() {
+        console.log('Initializing order filters...');
+        
         // Status filter dropdown
-        document.querySelectorAll('#orders-content .dropdown-item[data-status]').forEach(item => {
+        const statusItems = document.querySelectorAll('#orders-content .dropdown-item[data-status]');
+        statusItems.forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
                 const status = this.dataset.status;
                 
                 // Update dropdown text
                 const dropdownToggle = document.querySelector('#orders-content .dropdown-toggle');
-                dropdownToggle.innerHTML = `
-                    <i class="fas fa-filter me-1"></i> 
-                    ${status ? `Status: ${status}` : 'All Orders'}
-                `;
+                if (dropdownToggle) {
+                    dropdownToggle.innerHTML = `
+                        <i class="fas fa-filter me-1"></i> 
+                        ${status ? `Status: ${status}` : 'All Orders'}
+                    `;
+                }
                 
                 // Set active item
                 document.querySelectorAll('#orders-content .dropdown-item').forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
                 
                 applyOrderFilters(
-                    document.getElementById('order-search').value,
+                    getSearchTerm(),
                     status,
-                    document.getElementById('order-date-from').value,
-                    document.getElementById('order-date-to').value
+                    getDateFrom(),
+                    getDateTo()
                 );
             });
         });
         
-        // Date filters - auto-apply when changed
-        document.getElementById('order-date-from').addEventListener('change', function() {
-            applyOrderFilters(
-                document.getElementById('order-search').value,
-                document.querySelector('.dropdown-menu .active')?.dataset.status || '',
-                this.value,
-                document.getElementById('order-date-to').value
-            );
-        });
+        // Date filters
+        const dateFrom = document.getElementById('order-date-from');
+        const dateTo = document.getElementById('order-date-to');
         
-        document.getElementById('order-date-to').addEventListener('change', function() {
-            applyOrderFilters(
-                document.getElementById('order-search').value,
-                document.querySelector('.dropdown-menu .active')?.dataset.status || '',
-                document.getElementById('order-date-from').value,
-                this.value
-            );
-        });
+        if (dateFrom) {
+            dateFrom.addEventListener('change', function() {
+                applyOrderFilters(
+                    getSearchTerm(),
+                    getStatusFilter(),
+                    this.value,
+                    getDateTo()
+                );
+            });
+        }
+        
+        if (dateTo) {
+            dateTo.addEventListener('change', function() {
+                applyOrderFilters(
+                    getSearchTerm(),
+                    getStatusFilter(),
+                    getDateFrom(),
+                    this.value
+                );
+            });
+        }
 
         // Clear date filters button
         const clearDateBtn = document.getElementById('clear-date-filters');
         if (clearDateBtn) {
             clearDateBtn.addEventListener('click', function() {
-                document.getElementById('order-date-from').value = '';
-                document.getElementById('order-date-to').value = '';
+                if (dateFrom) dateFrom.value = '';
+                if (dateTo) dateTo.value = '';
                 applyOrderFilters(
-                    document.getElementById('order-search').value,
-                    document.querySelector('.dropdown-menu .active')?.dataset.status || '',
+                    getSearchTerm(),
+                    getStatusFilter(),
                     '',
                     ''
                 );
@@ -601,95 +729,164 @@ function loadRecentOrders() {
         }
         
         // Search functionality
-        document.getElementById('search-order-btn').addEventListener('click', function() {
-            const searchTerm = document.getElementById('order-search').value;
-            applyOrderFilters(
-                searchTerm,
-                document.querySelector('.dropdown-menu .active')?.dataset.status || '',
-                document.getElementById('order-date-from').value,
-                document.getElementById('order-date-to').value
-            );
-        });
+        const searchBtn = document.getElementById('search-order-btn');
+        const searchInput = document.getElementById('order-search');
         
-        document.getElementById('order-search').addEventListener('keyup', function(e) {
-            if (e.key === 'Enter') {
-                const searchTerm = this.value;
+        if (searchBtn) {
+            searchBtn.addEventListener('click', function() {
                 applyOrderFilters(
-                    searchTerm,
-                    document.querySelector('.dropdown-menu .active')?.dataset.status || '',
-                    document.getElementById('order-date-from').value,
-                    document.getElementById('order-date-to').value
+                    getSearchTerm(),
+                    getStatusFilter(),
+                    getDateFrom(),
+                    getDateTo()
                 );
-            }
-        });
+            });
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    applyOrderFilters(
+                        this.value,
+                        getStatusFilter(),
+                        getDateFrom(),
+                        getDateTo()
+                    );
+                }
+            });
+        }
     }
 
     // View order details
     function viewOrderDetails(orderId) {
+        console.log('Viewing order details:', orderId);
+        
         fetch(`https://fortexbackend.onrender.com/api/orders/${orderId}`, {
-            headers: { 'Authorization': `Bearer ${adminToken}` }
+            headers: { 
+                'Authorization': `Bearer ${adminToken}` 
+            }
         })
-        .then(response => response.json())
-        .then(order => {
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Order details response:', data);
+            
+            let order;
+            if (data.success && data.data) {
+                order = data.data;
+            } else if (data._id) {
+                order = data;
+            } else {
+                throw new Error('Invalid order data format');
+            }
+            
             // Populate modal
-            document.getElementById('orderDetailId').textContent = order.orderId;
+            const orderDetailId = document.getElementById('orderDetailId');
+            if (orderDetailId) orderDetailId.textContent = order.orderId;
             
             // Customer info
-            document.getElementById('customerInfo').innerHTML = `
-                <strong>Name:</strong> ${order.shippingDetails.name}<br>
-                <strong>Email:</strong> ${order.user.email}<br>
-                <strong>Phone:</strong> ${order.shippingDetails.phone}
-            `;
+            const customerInfo = document.getElementById('customerInfo');
+            if (customerInfo) {
+                customerInfo.innerHTML = `
+                    <strong>Name:</strong> ${order.shippingDetails?.name || 'N/A'}<br>
+                    <strong>Email:</strong> ${order.user?.email || 'N/A'}<br>
+                    <strong>Phone:</strong> ${order.shippingDetails?.phone || 'N/A'}
+                `;
+            }
             
             // Shipping info
-            document.getElementById('shippingInfo').innerHTML = `
-                ${order.shippingDetails.street}<br>
-                ${order.shippingDetails.city}, ${order.shippingDetails.state} ${order.shippingDetails.zip}<br>
-                ${order.shippingDetails.country}
-            `;
+            const shippingInfo = document.getElementById('shippingInfo');
+            if (shippingInfo) {
+                shippingInfo.innerHTML = `
+                    ${order.shippingDetails?.street || 'N/A'}<br>
+                    ${order.shippingDetails?.city || 'N/A'}, ${order.shippingDetails?.state || 'N/A'} ${order.shippingDetails?.zip || 'N/A'}<br>
+                    ${order.shippingDetails?.country || 'N/A'}
+                `;
+            }
             
             // Order items
             const orderItemsBody = document.getElementById('orderItemsBody');
-            orderItemsBody.innerHTML = '';
-            
-            order.items.forEach(item => {
-                const row = document.createElement('tr');
-                row.className = 'animate__animated animate__fadeIn';
+            if (orderItemsBody) {
+                orderItemsBody.innerHTML = '';
                 
-                let productName = 'Custom T-Shirt';
-                if (item.product && item.product.name) {
-                    productName = item.product.name;
+                if (order.items && order.items.length > 0) {
+                    order.items.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.className = 'animate__animated animate__fadeIn';
+                        
+                        let productName = 'Custom T-Shirt';
+                        if (item.product && item.product.name) {
+                            productName = item.product.name;
+                        } else if (item.productName) {
+                            productName = item.productName;
+                        }
+                        
+                        // Check if item has custom design
+                        const hasDesign = item.design && item.design !== '';
+                        const designCell = hasDesign ? 
+                            `<img src="${item.design}" alt="Custom Design" class="design-thumbnail" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;" onclick="showDesignImage('${item.design}')">` :
+                            '<span class="text-muted">No Design</span>';
+                        
+                        row.innerHTML = `
+                            <td>${productName}</td>
+                            <td>${item.size || 'N/A'}</td>
+                            <td>${item.color || 'N/A'}</td>
+                            <td>${designCell}</td>
+                            <td>${item.customText || 'None'}</td>
+                            <td>${item.quantity || 1}</td>
+                            <td>€${(item.priceAtPurchase || item.price || 0).toFixed(2)}</td>
+                        `;
+                        
+                        orderItemsBody.appendChild(row);
+                    });
+                } else {
+                    orderItemsBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No items in this order</td></tr>`;
                 }
-                
-                row.innerHTML = `
-                    <td>${productName}</td>
-                    <td>${item.size}</td>
-                    <td>${item.color}</td>
-                    <td>${item.customText || 'None'}</td>
-                    <td>${item.quantity}</td>
-                    <td>€${item.priceAtPurchase.toFixed(2)}</td>
-                `;
-                
-                orderItemsBody.appendChild(row);
-            });
+            }
             
             // Payment status
-            document.getElementById('paymentStatus').textContent = order.paymentStatus;
+            const paymentStatus = document.getElementById('paymentStatus');
+            if (paymentStatus) paymentStatus.textContent = order.paymentStatus || 'Pending';
             
             // Order status select
             const statusSelect = document.getElementById('orderStatusSelect');
-            statusSelect.value = order.orderStatus;
+            if (statusSelect) statusSelect.value = order.orderStatus || 'Pending';
             
             // Set up update button
-            document.getElementById('updateOrderStatusBtn').onclick = function() {
-                updateOrderStatus(order._id, statusSelect.value);
-            };
+            const updateBtn = document.getElementById('updateOrderStatusBtn');
+            if (updateBtn) {
+                updateBtn.onclick = function() {
+                    updateOrderStatus(order._id, statusSelect.value);
+                };
+            }
             
-            // Show modal with animation
-            const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
-            modal.show();
+            // Show modal
+            const modalElement = document.getElementById('orderDetailModal');
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            }
         })
-        .catch(error => console.error('Error loading order details:', error));
+        .catch(error => {
+            console.error('Error loading order details:', error);
+            showToast('Error loading order details: ' + error.message, 'error');
+        });
+    }
+
+    // Show design image in modal
+    window.showDesignImage = function(designUrl) {
+        const designImage = document.getElementById('designImage');
+        if (designImage) designImage.src = designUrl;
+        
+        const modalElement = document.getElementById('designModal');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
     }
 
     // Update order status
@@ -705,42 +902,70 @@ function loadRecentOrders() {
             })
         })
         .then(response => {
-            if (response.ok) {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success || data._id) {
                 // Close modal and refresh data
-                const modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailModal'));
-                modal.hide();
+                const modalElement = document.getElementById('orderDetailModal');
+                if (modalElement) {
+                    const modal = bootstrap.Modal.getInstance(modalElement);
+                    if (modal) modal.hide();
+                }
                 loadOrders();
                 loadDashboardData();
                 showToast('Order status updated successfully', 'success');
             } else {
-                throw new Error('Failed to update order status');
+                throw new Error(data.message || 'Failed to update order status');
             }
         })
         .catch(error => {
             console.error('Error updating order status:', error);
-            showToast('Failed to update order status', 'error');
+            showToast('Failed to update order status: ' + error.message, 'error');
         });
     }
 
     // ========== CUSTOMERS FUNCTIONS ==========
     const customersBody = document.getElementById('customers-body');
-    const customerDetailModal = new bootstrap.Modal(document.getElementById('customerDetailModal'));
     let allCustomers = [];
 
     function loadCustomers() {
+        console.log('Loading customers...');
+        
         fetch('https://fortexbackend.onrender.com/api/admin/customers', {
-            headers: { 'Authorization': `Bearer ${adminToken}` }
+            headers: { 
+                'Authorization': `Bearer ${adminToken}` 
+            }
         })
         .then(response => response.json())
-        .then(customers => {
-            allCustomers = customers;
-            displayCustomers(customers);
+        .then(data => {
+            console.log('Customers response:', data);
+            
+            if (Array.isArray(data)) {
+                allCustomers = data;
+            } else if (data.success && Array.isArray(data.data)) {
+                allCustomers = data.data;
+            } else {
+                throw new Error('Invalid customers data format');
+            }
+            
+            displayCustomers(allCustomers);
             initCustomerSearch();
         })
-        .catch(err => console.error('Error loading customers:', err));
+        .catch(err => {
+            console.error('Error loading customers:', err);
+            if (customersBody) {
+                customersBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading customers</td></tr>`;
+            }
+        });
     }
 
     function displayCustomers(customers) {
+        if (!customersBody) return;
+        
         customersBody.innerHTML = '';
 
         if (customers.length === 0) {
@@ -791,17 +1016,21 @@ function loadRecentOrders() {
         const searchInput = document.querySelector('#customers-content input[type="text"]');
         const searchButton = document.querySelector('#customers-content button');
         
-        searchButton.addEventListener('click', function() {
-            const searchTerm = searchInput.value.toLowerCase();
-            filterCustomers(searchTerm);
-        });
-        
-        searchInput.addEventListener('keyup', function(e) {
-            if (e.key === 'Enter') {
-                const searchTerm = this.value.toLowerCase();
+        if (searchButton) {
+            searchButton.addEventListener('click', function() {
+                const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
                 filterCustomers(searchTerm);
-            }
-        });
+            });
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    const searchTerm = this.value.toLowerCase();
+                    filterCustomers(searchTerm);
+                }
+            });
+        }
     }
 
     function filterCustomers(searchTerm) {
@@ -820,67 +1049,78 @@ function loadRecentOrders() {
 
     function viewCustomerDetails(customerId) {
         fetch(`https://fortexbackend.onrender.com/api/admin/customers/${customerId}`, {
-            headers: { 'Authorization': `Bearer ${adminToken}` }
+            headers: { 
+                'Authorization': `Bearer ${adminToken}` 
+            }
         })
         .then(response => response.json())
         .then(customer => {
-            document.getElementById('customerName').textContent = customer.name;
-            document.getElementById('customerEmail').textContent = customer.email;
+            const customerName = document.getElementById('customerName');
+            const customerEmail = document.getElementById('customerEmail');
+            const customerJoined = document.getElementById('customerJoined');
+            const customerOrdersBody = document.getElementById('customerOrdersBody');
+
+            if (customerName) customerName.textContent = customer.name;
+            if (customerEmail) customerEmail.textContent = customer.email;
 
             const joinDate = new Date(customer.createdAt);
-            document.getElementById('customerJoined').textContent = joinDate.toLocaleDateString('en-US', {
-                year: 'numeric', month: 'long', day: 'numeric'
-            });
-
-            const customerOrdersBody = document.getElementById('customerOrdersBody');
-            customerOrdersBody.innerHTML = '';
-
-            if (customer.orderHistory && customer.orderHistory.length > 0) {
-                customer.orderHistory.forEach(order => {
-                    const orderDate = new Date(order.createdAt);
-                    const formattedDate = orderDate.toLocaleDateString('en-US', {
-                        year: 'numeric', month: 'short', day: 'numeric'
-                    });
-
-                    const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
-
-                    const addressParts = [];
-                    if (order.shippingDetails.street) addressParts.push(order.shippingDetails.street);
-                    if (order.shippingDetails.city) addressParts.push(order.shippingDetails.city);
-                    if (order.shippingDetails.state) addressParts.push(order.shippingDetails.state);
-                    if (order.shippingDetails.country) addressParts.push(order.shippingDetails.country);
-
-                    const shortAddress = addressParts.join(', ');
-
-                    let statusClass = 'badge-secondary';
-                    if (order.orderStatus === 'Delivered') statusClass = 'badge-success';
-                    else if (order.orderStatus === 'Pending') statusClass = 'badge-warning';
-                    else if (order.orderStatus === 'Shipped') statusClass = 'badge-info';
-
-                    const row = document.createElement('tr');
-                    row.className = 'animate__animated animate__fadeIn';
-                    row.innerHTML = `
-                        <td>${order.orderId}</td>
-                        <td>${formattedDate}</td>
-                        <td>${totalItems} item(s)</td>
-                        <td>€${order.totalAmount.toFixed(2)}</td>
-                        <td><span class="badge ${statusClass}">${order.orderStatus}</span></td>
-                        <td>${shortAddress || 'N/A'}</td>
-                        <td>${order.shippingDetails.phone || 'N/A'}</td>
-                    `;
-                    customerOrdersBody.appendChild(row);
+            if (customerJoined) {
+                customerJoined.textContent = joinDate.toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric'
                 });
-            } else {
-                customerOrdersBody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4 text-muted">
-                            <i class="fas fa-box-open fa-2x mb-2"></i>
-                            <p>No orders found</p>
-                        </td>
-                    </tr>
-                `;
             }
 
+            if (customerOrdersBody) {
+                customerOrdersBody.innerHTML = '';
+
+                if (customer.orderHistory && customer.orderHistory.length > 0) {
+                    customer.orderHistory.forEach(order => {
+                        const orderDate = new Date(order.createdAt);
+                        const formattedDate = orderDate.toLocaleDateString('en-US', {
+                            year: 'numeric', month: 'short', day: 'numeric'
+                        });
+
+                        const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
+
+                        const addressParts = [];
+                        if (order.shippingDetails.street) addressParts.push(order.shippingDetails.street);
+                        if (order.shippingDetails.city) addressParts.push(order.shippingDetails.city);
+                        if (order.shippingDetails.state) addressParts.push(order.shippingDetails.state);
+                        if (order.shippingDetails.country) addressParts.push(order.shippingDetails.country);
+
+                        const shortAddress = addressParts.join(', ');
+
+                        let statusClass = 'badge bg-secondary';
+                        if (order.orderStatus === 'Delivered') statusClass = 'badge bg-success';
+                        else if (order.orderStatus === 'Pending') statusClass = 'badge bg-warning';
+                        else if (order.orderStatus === 'Shipped') statusClass = 'badge bg-info';
+
+                        const row = document.createElement('tr');
+                        row.className = 'animate__animated animate__fadeIn';
+                        row.innerHTML = `
+                            <td>${order.orderId}</td>
+                            <td>${formattedDate}</td>
+                            <td>${totalItems} item(s)</td>
+                            <td>€${order.totalAmount.toFixed(2)}</td>
+                            <td><span class="badge ${statusClass}">${order.orderStatus}</span></td>
+                            <td>${shortAddress || 'N/A'}</td>
+                            <td>${order.shippingDetails.phone || 'N/A'}</td>
+                        `;
+                        customerOrdersBody.appendChild(row);
+                    });
+                } else {
+                    customerOrdersBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="fas fa-box-open fa-2x mb-2"></i>
+                                <p>No orders found</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+
+            const customerDetailModal = new bootstrap.Modal(document.getElementById('customerDetailModal'));
             customerDetailModal.show();
         })
         .catch(err => console.error('Error loading customer details:', err));
@@ -912,8 +1152,14 @@ function loadRecentOrders() {
         setTimeout(() => {
             toastContainer.classList.remove('show');
             setTimeout(() => {
-                document.body.removeChild(toastContainer);
+                if (document.body.contains(toastContainer)) {
+                    document.body.removeChild(toastContainer);
+                }
             }, 300);
         }, 3000);
     }
+
+    // Make functions globally accessible
+    window.viewOrderDetails = viewOrderDetails;
+    window.showDesignImage = showDesignImage;
 });

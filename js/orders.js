@@ -2,166 +2,276 @@ document.addEventListener('DOMContentLoaded', function() {
     const adminToken = localStorage.getItem('adminToken');
     const ordersBody = document.getElementById('orders-body');
     
+    // Check if filter elements exist before using them
+    const searchInput = document.getElementById('searchOrders');
+    const statusFilter = document.getElementById('statusFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    
+    let allOrders = []; // Store all orders for filtering
+
     // Load orders
     function loadOrders() {
+        console.log('Loading orders...');
+        
         fetch('https://fortexbackend.onrender.com/api/orders/admin/orders', {
             headers: {
                 'Authorization': `Bearer ${adminToken}`
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            if (!data.success) {
-                throw new Error(data.message || 'Failed to load orders');
+            console.log('Orders API response:', data);
+            
+            // Handle different response structures
+            if (data.success && Array.isArray(data.data)) {
+                allOrders = data.data;
+            } else if (Array.isArray(data)) {
+                allOrders = data; // Fallback for direct array response
+            } else {
+                throw new Error('Invalid orders data format');
             }
             
-            const orders = data.data;
-            ordersBody.innerHTML = '';
-            
-            orders.forEach(order => {
-                const row = document.createElement('tr');
-                
-                // Format date
-                const orderDate = new Date(order.createdAt);
-                const formattedDate = orderDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-                
-                // Status badge
-                let statusBadgeClass = 'badge-primary';
-                if (order.orderStatus === 'Delivered') statusBadgeClass = 'badge-success';
-                else if (order.orderStatus === 'Shipped') statusBadgeClass = 'badge-info';
-                else if (order.orderStatus === 'Processing') statusBadgeClass = 'badge-warning';
-                else if (order.orderStatus === 'Cancelled') statusBadgeClass = 'badge-danger';
-                
-                // Payment badge
-                let paymentBadgeClass = 'badge-warning';
-                if (order.paymentStatus === 'Paid') paymentBadgeClass = 'badge-success';
-                else if (order.paymentStatus === 'Failed') paymentBadgeClass = 'badge-danger';
-                
-                row.innerHTML = `
-                    <td>${order.orderId}</td>
-                    <td>${order.user?.name || 'N/A'}</td>
-                    <td>${formattedDate}</td>
-                    <td>${order.items.length}</td>
-                    <td>€${order.totalAmount.toFixed(2)}</td>
-                    <td><span class="badge ${paymentBadgeClass}">${order.paymentStatus}</span></td>
-                    <td><span class="badge ${statusBadgeClass}">${order.orderStatus}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary view-order-btn" data-order-id="${order._id}">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
-                `;
-                
-                ordersBody.appendChild(row);
-            });
-            
-            // Add event listeners to view buttons
-            document.querySelectorAll('.view-order-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const orderId = this.getAttribute('data-order-id');
-                    viewOrderDetails(orderId);
-                });
-            });
+            console.log('Loaded orders:', allOrders.length);
+            applyOrderFilters();
         })
         .catch(error => {
             console.error('Error loading orders:', error);
-            ordersBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error loading orders: ${error.message}</td></tr>`;
+            if (ordersBody) {
+                ordersBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error loading orders: ${error.message}</td></tr>`;
+            }
         });
     }
-    
+
+    // Apply filters to orders
+    function applyOrderFilters() {
+        console.log('Applying filters...');
+        
+        let filteredOrders = [...allOrders];
+        
+        // Search filter - only apply if element exists
+        if (searchInput && searchInput.value) {
+            const searchTerm = searchInput.value.toLowerCase();
+            filteredOrders = filteredOrders.filter(order => 
+                order.orderId.toLowerCase().includes(searchTerm) ||
+                (order.user?.name && order.user.name.toLowerCase().includes(searchTerm)) ||
+                (order.user?.email && order.user.email.toLowerCase().includes(searchTerm)) ||
+                (order.shippingDetails?.name && order.shippingDetails.name.toLowerCase().includes(searchTerm))
+            );
+        }
+        
+        // Status filter - only apply if element exists
+        if (statusFilter && statusFilter.value) {
+            const statusValue = statusFilter.value;
+            filteredOrders = filteredOrders.filter(order => order.orderStatus === statusValue);
+        }
+        
+        // Date filter - only apply if element exists
+        if (dateFilter && dateFilter.value) {
+            const dateValue = dateFilter.value;
+            const filterDate = new Date(dateValue);
+            filteredOrders = filteredOrders.filter(order => {
+                const orderDate = new Date(order.createdAt);
+                return orderDate.toDateString() === filterDate.toDateString();
+            });
+        }
+        
+        displayOrders(filteredOrders);
+    }
+
+    // Display orders in table
+    function displayOrders(orders) {
+        if (!ordersBody) {
+            console.error('Orders body element not found');
+            return;
+        }
+        
+        ordersBody.innerHTML = '';
+        
+        if (orders.length === 0) {
+            ordersBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No orders found</td></tr>`;
+            return;
+        }
+        
+        orders.forEach(order => {
+            const row = document.createElement('tr');
+            
+            // Format date
+            const orderDate = new Date(order.createdAt);
+            const formattedDate = orderDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            
+            // Status badge
+            let statusBadgeClass = 'badge bg-primary';
+            if (order.orderStatus === 'Delivered') statusBadgeClass = 'badge bg-success';
+            else if (order.orderStatus === 'Shipped') statusBadgeClass = 'badge bg-info';
+            else if (order.orderStatus === 'Processing') statusBadgeClass = 'badge bg-warning';
+            else if (order.orderStatus === 'Cancelled') statusBadgeClass = 'badge bg-danger';
+            
+            // Payment badge
+            let paymentBadgeClass = 'badge bg-warning';
+            if (order.paymentStatus === 'Paid') paymentBadgeClass = 'badge bg-success';
+            else if (order.paymentStatus === 'Failed') paymentBadgeClass = 'badge bg-danger';
+            
+            row.innerHTML = `
+                <td>${order.orderId}</td>
+                <td>${order.user?.name || 'N/A'}</td>
+                <td>${formattedDate}</td>
+                <td>${order.items?.length || 0}</td>
+                <td>€${order.totalAmount?.toFixed(2) || '0.00'}</td>
+                <td><span class="badge ${paymentBadgeClass}">${order.paymentStatus || 'Pending'}</span></td>
+                <td><span class="badge ${statusBadgeClass}">${order.orderStatus || 'Pending'}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary view-order-btn" data-order-id="${order._id}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            `;
+            
+            ordersBody.appendChild(row);
+        });
+        
+        // Add event listeners to view buttons
+        document.querySelectorAll('.view-order-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-order-id');
+                viewOrderDetails(orderId);
+            });
+        });
+    }
+
     // View order details with design images
     window.viewOrderDetails = function(orderId) {
+        console.log('Viewing order details:', orderId);
+        
         fetch(`https://fortexbackend.onrender.com/api/orders/${orderId}`, {
             headers: {
                 'Authorization': `Bearer ${adminToken}`
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            if (!data.success) {
-                throw new Error(data.message || 'Failed to load order details');
+            console.log('Order details response:', data);
+            
+            let order;
+            if (data.success && data.data) {
+                order = data.data;
+            } else if (data._id) {
+                order = data; // Fallback for direct object response
+            } else {
+                throw new Error('Invalid order data format');
             }
             
-            const order = data.data;
-            
             // Populate modal
-            document.getElementById('orderDetailId').textContent = order.orderId;
+            const orderDetailId = document.getElementById('orderDetailId');
+            if (orderDetailId) orderDetailId.textContent = order.orderId;
             
             // Customer info
-            document.getElementById('customerInfo').innerHTML = `
-                <strong>Name:</strong> ${order.shippingDetails.name}<br>
-                <strong>Email:</strong> ${order.user?.email || 'N/A'}<br>
-                <strong>Phone:</strong> ${order.shippingDetails.phone}
-            `;
+            const customerInfo = document.getElementById('customerInfo');
+            if (customerInfo) {
+                customerInfo.innerHTML = `
+                    <strong>Name:</strong> ${order.shippingDetails?.name || 'N/A'}<br>
+                    <strong>Email:</strong> ${order.user?.email || 'N/A'}<br>
+                    <strong>Phone:</strong> ${order.shippingDetails?.phone || 'N/A'}
+                `;
+            }
             
             // Shipping info
-            document.getElementById('shippingInfo').innerHTML = `
-                ${order.shippingDetails.street}<br>
-                ${order.shippingDetails.city}, ${order.shippingDetails.state} ${order.shippingDetails.zip}<br>
-                ${order.shippingDetails.country}
-            `;
+            const shippingInfo = document.getElementById('shippingInfo');
+            if (shippingInfo) {
+                shippingInfo.innerHTML = `
+                    ${order.shippingDetails?.street || 'N/A'}<br>
+                    ${order.shippingDetails?.city || 'N/A'}, ${order.shippingDetails?.state || 'N/A'} ${order.shippingDetails?.zip || 'N/A'}<br>
+                    ${order.shippingDetails?.country || 'N/A'}
+                `;
+            }
             
             // Order items with design images
             const orderItemsBody = document.getElementById('orderItemsBody');
-            orderItemsBody.innerHTML = '';
-            
-            order.items.forEach(item => {
-                const row = document.createElement('tr');
+            if (orderItemsBody) {
+                orderItemsBody.innerHTML = '';
                 
-                let productName = 'Custom T-Shirt';
-                if (item.product && item.product.name) {
-                    productName = item.product.name;
+                if (order.items && order.items.length > 0) {
+                    order.items.forEach(item => {
+                        const row = document.createElement('tr');
+                        
+                        let productName = 'Custom T-Shirt';
+                        if (item.product && item.product.name) {
+                            productName = item.product.name;
+                        } else if (item.productName) {
+                            productName = item.productName;
+                        }
+                        
+                        // Check if item has custom design
+                        const hasDesign = item.design && item.design !== '';
+                        const designCell = hasDesign ? 
+                            `<img src="${item.design}" alt="Custom Design" class="design-thumbnail" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;" onclick="showDesignImage('${item.design}')">` :
+                            '<span class="text-muted">No Design</span>';
+                        
+                        row.innerHTML = `
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    ${item.product?.images?.[0] ? 
+                                        `<img src="${item.product.images[0].url}" alt="${productName}" class="product-thumbnail me-2" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px;">` : 
+                                        item.product?.image ?
+                                        `<img src="${item.product.image}" alt="${productName}" class="product-thumbnail me-2" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px;">` :
+                                        '<i class="fas fa-tshirt text-muted me-2"></i>'
+                                    }
+                                    ${productName}
+                                </div>
+                            </td>
+                            <td>${item.size || 'N/A'}</td>
+                            <td>
+                                <span class="color-badge" style="background-color: ${getColorHex(item.color)}"></span>
+                                ${item.color || 'N/A'}
+                            </td>
+                            <td>${designCell}</td>
+                            <td>${item.customText || 'None'}</td>
+                            <td>${item.quantity || 1}</td>
+                            <td>€${(item.priceAtPurchase || item.price || 0).toFixed(2)}</td>
+                        `;
+                        
+                        orderItemsBody.appendChild(row);
+                    });
+                } else {
+                    orderItemsBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No items in this order</td></tr>`;
                 }
-                
-                // Check if item has custom design
-                const hasDesign = item.design && item.design !== '';
-                const designCell = hasDesign ? 
-                    `<img src="${item.design}" alt="Custom Design" class="design-thumbnail" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" data-bs-toggle="modal" data-bs-target="#designModal" onclick="showDesignImage('${item.design}')">` :
-                    '<span class="text-muted">No Design</span>';
-                
-                row.innerHTML = `
-                    <td>
-                        <div class="d-flex align-items-center">
-                            ${item.product?.images?.[0] ? 
-                                `<img src="${item.product.images[0].url}" alt="${productName}" class="product-thumbnail me-2">` : 
-                                '<i class="fas fa-tshirt text-muted me-2"></i>'
-                            }
-                            ${productName}
-                        </div>
-                    </td>
-                    <td>${item.size}</td>
-                    <td>
-                        <span class="color-badge" style="background-color: ${getColorHex(item.color)}"></span>
-                        ${item.color}
-                    </td>
-                    <td>${designCell}</td>
-                    <td>${item.customText || 'None'}</td>
-                    <td>${item.quantity}</td>
-                    <td>€${item.priceAtPurchase.toFixed(2)}</td>
-                `;
-                
-                orderItemsBody.appendChild(row);
-            });
+            }
             
             // Payment status
-            document.getElementById('paymentStatus').textContent = order.paymentStatus;
+            const paymentStatus = document.getElementById('paymentStatus');
+            if (paymentStatus) paymentStatus.textContent = order.paymentStatus || 'Pending';
             
             // Order status select
             const statusSelect = document.getElementById('orderStatusSelect');
-            statusSelect.value = order.orderStatus;
+            if (statusSelect) statusSelect.value = order.orderStatus || 'Pending';
             
             // Set up update button
-            document.getElementById('updateOrderStatusBtn').onclick = function() {
-                updateOrderStatus(order._id, statusSelect.value);
-            };
+            const updateBtn = document.getElementById('updateOrderStatusBtn');
+            if (updateBtn) {
+                updateBtn.onclick = function() {
+                    updateOrderStatus(order._id, statusSelect.value);
+                };
+            }
             
             // Show modal
-            const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
-            modal.show();
+            const modalElement = document.getElementById('orderDetailModal');
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            }
         })
         .catch(error => {
             console.error('Error loading order details:', error);
@@ -171,9 +281,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Show design image in modal
     window.showDesignImage = function(designUrl) {
-        document.getElementById('designImage').src = designUrl;
-        const modal = new bootstrap.Modal(document.getElementById('designModal'));
-        modal.show();
+        const designImage = document.getElementById('designImage');
+        if (designImage) designImage.src = designUrl;
+        
+        const modalElement = document.getElementById('designModal');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
     }
     
     // Update order status
@@ -188,12 +303,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 status: status
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.success) {
+            if (data.success || data._id) {
                 // Close modal and refresh data
-                const modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailModal'));
-                modal.hide();
+                const modalElement = document.getElementById('orderDetailModal');
+                if (modalElement) {
+                    const modal = bootstrap.Modal.getInstance(modalElement);
+                    if (modal) modal.hide();
+                }
                 loadOrders();
                 alert('Order status updated successfully');
             } else {
@@ -205,26 +328,51 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Failed to update order status: ' + error.message);
         });
     }
-    
+
+    // Event listeners for filters - only add if elements exist
+    if (searchInput) {
+        searchInput.addEventListener('input', applyOrderFilters);
+        console.log('Search input listener added');
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', applyOrderFilters);
+        console.log('Status filter listener added');
+    }
+    if (dateFilter) {
+        dateFilter.addEventListener('change', applyOrderFilters);
+        console.log('Date filter listener added');
+    }
+
     // Initialize orders
-    loadOrders();
+    if (ordersBody) {
+        loadOrders();
+    } else {
+        console.error('Orders body element not found in DOM');
+    }
 });
 
 // Color HEX Helper
 function getColorHex(colorName) {
+    if (!colorName) return '#cccccc';
+    
     const colors = {
-        'Red': '#ff0000',
-        'Blue': '#0000ff',
-        'Green': '#008000',
-        'Black': '#000000',
-        'White': '#ffffff',
-        'Yellow': '#ffff00',
-        'Grey': '#808080',
-        'Pink': '#ffc0cb',
-        'Navy': '#000080',
-        'Purple': '#800080',
-        'Orange': '#ffa500',
-        'Brown': '#a52a2a'
+        'red': '#ff0000',
+        'blue': '#0000ff',
+        'green': '#008000',
+        'black': '#000000',
+        'white': '#ffffff',
+        'yellow': '#ffff00',
+        'grey': '#808080',
+        'gray': '#808080',
+        'pink': '#ffc0cb',
+        'navy': '#000080',
+        'purple': '#800080',
+        'orange': '#ffa500',
+        'brown': '#a52a2a',
+        'maroon': '#800000',
+        'teal': '#008080',
+        'olive': '#808000',
+        'silver': '#c0c0c0'
     };
-    return colors[colorName] || '#cccccc';
+    return colors[colorName.toLowerCase()] || '#cccccc';
 }
