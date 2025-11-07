@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if user is admin
     if (!adminToken) {
-        window.location.href = 'admin-login.html';
+        window.location.href = 'login.html';
         return;
     }
 
